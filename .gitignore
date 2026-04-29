@@ -1,0 +1,7 @@
+﻿venv/
+env/
+data_eegmmidb/
+*.csv
+*.pkl
+output/
+.ipynb_checkpoints/
