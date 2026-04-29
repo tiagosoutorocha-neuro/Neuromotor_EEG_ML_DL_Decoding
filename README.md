@@ -356,8 +356,6 @@ Aplicada ao modelo top-1 (KNN + RMS + LDA-auto) - Comparativo_MLxDL.ipynb, seç�
 
 ### Gráfico comparativo (gerado no Comparativo_MLxDL.ipynb, seção H-3)
 
-### Gráfico comparativo (gerado no Comparativo_MLxDL.ipynb, seção H-3)
-
 ![Comparação final dos 6 modelos](assents/Comparação.png)
 
 *Barras agrupadas (accuracy / F1 / AUC) lado a lado para os 6 modelos. Linha tracejada cinza marca o nível de chance (0,50).*
@@ -367,6 +365,17 @@ Aplicada ao modelo top-1 (KNN + RMS + LDA-auto) - Comparativo_MLxDL.ipynb, seç�
 Os 3 melhores ML produzem ROCs **quase paralelas** com AUC ≈ 0,62–0,64. As CNNs ficam mais próximas da diagonal de chance.
 
 ### Matrizes de confusão (out-of-fold, N=450)
+
+![Matriz de Confusão do modelo top-1](assents/Matriz_Confusao.png)
+
+Por exemplo, ML1 (KNN+RMS+LDA-auto):
+
+|  | Pred T1 | Pred T2 |
+|---|---:|---:|
+| Real T1 | TN ≈ 135 | FP ≈ 90 |
+| Real T2 | FN ≈ 91 | TP ≈ 134 |
+
+Erros simétricos (FP ≈ FN) => fronteira de decisão centrada, modelo trata as duas mãos de forma equivalente.
 
 Por exemplo, ML1 (KNN+RMS+LDA-auto):
 
@@ -445,6 +454,11 @@ Não aplicável no dataset real (já balanceado). No estudo controlado (DL Teste
 | **Wilcoxon pareado** (todos os pares) | confirma o padrão acima | — |
 
 ### Observações sobre estabilidade
+
+![Boxplot mostrando a variância entre os folds](assents/Box_Plot.png)
+
+- **Folds têm variância considerável** (desvios de até 0,10 em accuracy) - característica esperada de BCI cross-subject com poucos sujeitos.
+- **Boxplot por teste** mostra que T2 e T5 (variantes de features clássicas) têm distribuição comparável a T3/T4 (CSP/FBCSP), confirmando que, com poucos dados, boas características manuais competem de igual para igual com redes espaciais.
 
 - **Folds têm variância considerável** (desvios de até 0,10 em accuracy) - característica esperada de BCI cross-subject com poucos sujeitos.
 - **Boxplot por teste** mostra que T2 e T5 (variantes de features clássicas) têm distribuição comparável a T3/T4 (CSP/FBCSP), Provando que, com poucos dados, boas características tipicas competem de igual para igual com redes espaciais.
