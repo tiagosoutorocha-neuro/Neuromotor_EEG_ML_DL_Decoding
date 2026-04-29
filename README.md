@@ -67,7 +67,7 @@ Todo o pré-processamento está implementado em `src/notebooks/Preprocessamento_
 | **Tarefa** | Runs 4, 8, 12 => MI esquerda (T1) vs direita (T2) | Paradigma canônico EEGBCI |
 | **Seleção de canais** | 21 sensores do córtex sensoriomotor (FC, C, CP) | Foco neurofisiológico em mu/beta |
 | **Referenciamento** | CAR (Common Average Reference) | Padrão em MI, atenua ruído comum |
-| **Filtragem** | Notch 60 Hz + harmônicos < Nyquist + band-pass 8–30 Hz | Bandas mu e beta, rede elétrica EUA (local de gravação do EEG)|
+| **Filtragem** | Notch 60 Hz + harmônicos < Nyquist + band-pass -30 Hz | Bandas mu e beta, rede elétrica EUA (local de gravação do EEG)|
 | **ICA** | Picard (extended=True, fallback Infomax) ajustado por sujeito | Artefatos são sujeito-específicos, sem vazamento entre sujeitos |
 | **Classificação ICA** | ICLabel (p > 0,70) + `find_bads_eog` + `find_bads_muscle` + kurtose &gt; 8 (união, threshold conservador) | Não descartar componentes motores legítimos |
 | **Epocagem** | 0 a 4 s pós-evento, sem baseline subtraída | Janela típica de MI |
