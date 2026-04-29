@@ -1,32 +1,32 @@
-# Mini-Projeto 2 — Classificação de Imagética Motora (EEG)
+# Decodificação Neuromotora com EEG Através de Modelos de Machine Learning e Deep Learning
 
-> Pipeline avançado de classificação de sinais EEG do dataset **EEGBCI / PhysioNet** entre as classes **T1 (mão esquerda)** vs **T2 (mão direita)** durante imagética motora, comparando algoritmos clássicos de Machine Learning, redes neurais (MLP, CNN 2D, CNN 3D), múltiplas representações de features, redução de dimensionalidade, balanceamento, ensembles e rejeição.
+Pipelines de classificação de sinais EEG do dataset EEGBCI / PhysioNet entre as classes T1 (mão esquerda) vs T2 (mão direita) durante atividade imagética motora, comparando algoritmos clássicos de Machine Learning e de Deep Lerning (MLP, CNN 2D, CNN 3D), com testes de redução de dimensionalidade, balanceamento, ensembles e rejeição de classificadores.
 
 ---
 
 ## 1. Introdução
 
-Este projeto desenvolve e avalia um pipeline completo para classificação de sinais de EEG durante imagética motora, utilizando a biblioteca **MNE-Python** e um stack de aprendizado de máquina e *deep learning*.
+Este projeto desenvolve e avalia pipelines para classificação de sinais de EEG durante atividade imagética motora, utilizando a biblioteca MNE-Python e um conjunto de bibliotecas de machine lerning e deep learning.
 
-O foco principal é **comparar de forma metodologicamente honesta** diferentes abordagens de modelagem, controlando rigorosamente as fontes mais comuns de inflação de performance em BCI (vazamento de dados entre sujeitos, vazamento de épocas, normalização global, escolha enviesada de hiperparâmetros).
+O foco principal é comparar diferentes abordagens de modelos para o problema da classificação do movimento imaginado, em busca dos melhores modelos.
 
 São comparados:
 
 - **Algoritmos clássicos**: Naive Bayes, KNN, Regressão Logística, SVM (linear e RBF), Random Forest;
-- **Redes neurais**: MLP (4 arquiteturas), CNN 2D sobre layout topográfico, CNN 2D sobre STFT, CNN 3D topográfica espaço-temporal-frequencial;
-- **Representações**: features clássicas (banda + Hjorth + entropia), CSP, FBCSP + MIBIF, SPoC, Riemann (Tangent Space), STFT, layout topográfico;
+- **Redes neurais**: MLP (4 arquiteturas), CNN 2D sobre maopa topográfico, CNN 2D sobre STFT, CNN 3D topográfica espaço-temporal-frequencial;
+- **Representações**: features clássicas (banda + Hjorth + entropia), CSP, FBCSP + MIBIF, SPoC, Riemann (Tangent Space), STFT, mapa topográfico;
 - **Reduções de dimensionalidade**: PCA, LDA (sem/com shrinkage), t-SNE, SelectKBest;
 - **Balanceamento**: SMOTE, undersampling (induzidos artificialmente, já que o dataset original é balanceado);
 - **Combinação e rejeição**: Voting (hard/soft) e rejeição por limiar de confiança.
 
-**Validação:** todos os testes usam **GroupKFold(5)** e/ou **Leave-One-Subject-Out (LOSO)** — nenhum sujeito aparece simultaneamente em treino e teste.
+**Validação:** todos os testes usam GroupKFold(5) e/ou Leave-One-Subject-Out (LOSO) - com nenhum sujeito aparece simultaneamente em treino e teste.
 
 ---
 
 ## 2. Dataset
 
 - **Fonte**: [EEG Motor Movement/Imagery Dataset](https://physionet.org/content/eegmmidb/1.0.0/) (EEGBCI, PhysioNet)
-- **Tipo de problema**: classificação **binária** (T1 vs T2)
+- **Tipo de problema**: classificação binária (T1 vs T2)
 
 ### Descrição dos dados
 
@@ -41,8 +41,8 @@ São comparados:
 
 ### Classes utilizadas
 
-- **Classe 0 — T1**: imaginar abrir/fechar **mão esquerda**
-- **Classe 1 — T2**: imaginar abrir/fechar **mão direita**
+- **Classe 0 — T1**: imaginar abrir/fechar mão esquerda.
+- **Classe 1 — T2**: imaginar abrir/fechar mão direita.
 
 ### Distribuição de classes
 
@@ -50,9 +50,9 @@ São comparados:
 |---|---:|---:|
 | T1 (esquerda) | 225 | 50,0 % |
 | T2 (direita) | 225 | 50,0 % |
-| **Total** | **450** | 100 % |
+| **Total** | 450 | 100 % |
 
-> **O dataset é perfeitamente balanceado**, portanto SMOTE/undersampling **não foram necessários** no fluxo principal — foram avaliados apenas em um cenário de desbalanceamento induzido artificialmente para fins didáticos (Teste 3 do notebook de DL).
+**OBS:** O dataset é perfeitamente balanceado, portanto SMOTE/undersampling não foram necessários no fluxo principal, foram avaliados apenas em um cenário de desbalanceamento induzido artificialmente para fins didáticos (Teste 3 do notebook de DL).
 
 ---
 
@@ -62,50 +62,50 @@ Todo o pré-processamento está implementado em `src/notebooks/Preprocessamento_
 
 | Etapa | Decisão | Justificativa |
 |---|---|---|
-| Tarefa | Runs 4, 8, 12 → MI esquerda (T1) vs direita (T2) | Paradigma canônico EEGBCI |
-| Seleção de canais | 21 sensores do córtex sensoriomotor (FC, C, CP) | Foco neurofisiológico em mu/beta |
-| Referenciamento | **CAR** (Common Average Reference) | Padrão em MI; atenua ruído comum |
-| Filtragem | **Notch 60 Hz** + harmônicos < Nyquist + **passa-banda 8–30 Hz** | Bandas mu e beta; rede elétrica EUA |
-| ICA | **Picard** (extended=True, fallback Infomax) ajustado por sujeito | Artefatos são sujeito-específicos; sem vazamento entre sujeitos |
-| Classificação ICA | **ICLabel** (p > 0,70) + `find_bads_eog` + `find_bads_muscle` + kurtose &gt; 8 (união, threshold conservador) | Não descartar componentes motoras legítimas |
-| Epocagem | 0 a 4 s pós-evento, sem baseline subtraída | Janela típica de MI |
-| Normalização | StandardScaler / RobustScaler ajustados **somente no treino de cada fold** | Evita vazamento treino→teste |
-| Sanity check | ERD/ERS tempo-frequência (Morlet) em C3/C4 | Validar lateralização contralateral esperada |
+| **Tarefa** | Runs 4, 8, 12 => MI esquerda (T1) vs direita (T2) | Paradigma canônico EEGBCI |
+| **Seleção de canais** | 21 sensores do córtex sensoriomotor (FC, C, CP) | Foco neurofisiológico em mu/beta |
+| **Referenciamento** | CAR (Common Average Reference) | Padrão em MI, atenua ruído comum |
+| **Filtragem** | Notch 60 Hz + harmônicos < Nyquist + band-pass 8–30 Hz | Bandas mu e beta, rede elétrica EUA (local de gravação do EEG)|
+| **ICA** | Picard (extended=True, fallback Infomax) ajustado por sujeito | Artefatos são sujeito-específicos, sem vazamento entre sujeitos |
+| **Classificação ICA** | ICLabel (p > 0,70) + `find_bads_eog` + `find_bads_muscle` + kurtose &gt; 8 (união, threshold conservador) | Não descartar componentes motores legítimos |
+| **Epocagem** | 0 a 4 s pós-evento, sem baseline subtraída | Janela típica de MI |
+| **Normalização** | StandardScaler / RobustScaler ajustados **somente no treino de cada fold** | Evita vazamento treino→teste |
+| **Teste de Sanidade** | ERD/ERS tempo-frequência (Morlet) em C3/C4 | Validar lateralização contralateral esperada |
 
-### Pipeline em batch
+### Pipeline em Batch
 
-O pipeline foi encapsulado na função `preprocess_subject_run_v2(...)` (modular, retomável, com cache em disco) e roda em todos os sujeitos/runs gerando:
+O pipeline foi encapsulado na função preprocess_subject_run_v2(...) (modular, retomável, com cache em disco) e roda em todos os sujeitos/runs gerando:
 
-- `preprocessed_v2/per_run/{S###}_R{##}-epo.fif` — 1 arquivo por run.
-- `preprocessed_v2/per_subject/{S###}_allruns-epo.fif` — concatenação por sujeito (input para os notebooks de modelagem).
-- `preprocessed_v2/manifest.csv` — log de status (`ok`/`cached`/`failed`) e nº de épocas por arquivo.
-- Cada `Epochs.metadata` recebe colunas `subject`, `run` e `label`, **essenciais para GroupKFold**.
+- preprocessed_v2/per_run/{S###}_R{##}-epo.fif - 1 arquivo por run.
+- preprocessed_v2/per_subject/{S###}_allruns-epo.fif - concatenação por sujeito (input para os notebooks de modelagem).
+- preprocessed_v2/manifest.csv - log de status (ok/cached/failed) e nº de épocas por arquivo.
+- Cada Epochs.metadata recebe colunas subject, run e label, essenciais para GroupKFold.
 
 ### Visualização
 
-Cada etapa do pipeline gera figuras de diagnóstico (em modo `visualize=True`):
+Cada etapa do pipeline gera figuras de verificação (em modo `visualize=True`):
 
-- PSD antes/depois do notch e do ICA;
+- PSD antes e depois do notch e do ICA;
 - Topografias (montagem, sensores motores, componentes ICA, componentes excluídas);
 - ERPs médios T1 vs T2 em C3/Cz/C4;
-- Mapas tempo-frequência (Morlet) em C3 e C4 — **sanity check do padrão ERD/ERS contralateral**.
+- Mapas tempo-frequência (Morlet) em C3 e C4 - teste de sanidade do padrão ERD/ERS contralateral.
 
 ---
 
 ## 4. Representações de Séries Temporais
 
-Foram construídas **duas famílias** de representações, complementares.
+Foram construídas duas famílias de representações complementares.
 
-### Representação A — Features clássicas tabulares
+### Representação A - Features clássicas tabulares
 
-Para cada época × cada canal motor, **7 features**:
+Para cada época × cada canal motor, 7 features:
 
-- **3 potências relativas de banda** (mu 8–13 Hz, beta-low 13–20 Hz, beta-high 20–30 Hz) via Welch + normalização pela soma das 3;
-- **Variância** do sinal no tempo;
-- **Mobilidade e Complexidade de Hjorth** (Activity é redundante com a variância e foi omitida);
-- **Entropia espectral de Shannon** sobre a PSD normalizada.
+- **3 potências relativas de banda:** (mu 8–13 Hz, beta-low 13–20 Hz, beta-high 20–30 Hz) via Welch + normalização pela soma das 3;
+- **Variância:** do sinal no tempo;
+- **Mobilidade e Complexidade de Hjorth:** (Activity é redundante com a variância e foi omitida);
+- **Entropia espectral de Shannon:** sobre a PSD normalizada.
 
-→ Resultado: matriz `(450 épocas, 7 × 21 canais = 147 features)`. *Em alguns testes usaram-se 105 features (15 canais).*
+**Resultado:** matriz (450 épocas, 7 × 21 canais = 147 features). Em alguns testes foram ultilizados 105 features (15 canais).
 
 **Justificativa neurofisiológica**: as bandas mu e beta concentram o ERD/ERS sensoriomotor durante MI. Features de Hjorth são descritores estatísticos no domínio do tempo proporcionais à frequência média (Mobility) e largura de banda (Complexity); entropia espectral mede o quão "plana" é a distribuição espectral.
 
@@ -115,68 +115,68 @@ Cruzando duas decisões de design:
 
 | | sem RMS | com RMS (sinal/RMS antes da extração) |
 |---|---|---|
-| **Por canal** (147 features) | `canal_sem_rms` (≡ baseline T1) | `canal_com_rms` |
-| **Média entre canais** (7 features) | `media_sem_rms` | `media_com_rms` |
+| **Por canal** (147 features) | canal_sem_rms (≡ baseline T1) | canal_com_rms |
+| **Média entre canais** (7 features) | media_sem_rms | media_com_rms |
 
-### Representação B — Filtros espaciais e tempo-frequência
+### Representação B - Filtros espaciais e tempo-frequência
 
-- **CSP** (`mne.decoding.CSP`, n_components=4, regularização Ledoit-Wolf, log-power) — Teste 3.
-- **FBCSP** (Filter-Bank CSP) sobre 5 sub-bandas `[8–12, 12–16, 16–20, 20–24, 24–28] Hz` (Butterworth ordem 4 zero-fase) → 20 features brutas → **MIBIF** (`SelectKBest` com `mutual_info_classif`, top-8) — Teste 4.
-- **SPoC**, **Riemann (Tangent Space)** — usados no notebook de DL como baseline espacial avançado (LOSO AUC ≈ 0,67).
-- **STFT** por canal (nperseg=128, noverlap=64, banda 8–30 Hz, log-power) → tensor `(N, C, F, T)` — input das CNN 2D/3D.
-- **Layout topográfico 3×5** (3 linhas FC/C/CP × 5 colunas) → input da CNN 3D.
+- **CSP** (mne.decoding.CSP, n_components=4, regularização Ledoit-Wolf, log-power) - Teste 3.
+- **FBCSP** (Filter-Bank CSP) sobre 5 sub-bandas [8–12, 12–16, 16–20, 20–24, 24–28] Hz (Butterworth ordem 4 zero-fase) => 20 features brutas => MIBIF (SelectKBest com mutual_info_classif, top-8) - Teste 4.
+- **SPoC**, **Riemann (Tangent Space)** - usados no notebook de DL como baseline espacial (LOSO AUC ≈ 0,67).
+- **STFT** por canal (nperseg=128, noverlap=64, banda 8–30 Hz, log-power) => tensor (N, C, F, T) - input das CNN 2D/3D.
+- **Layout topográfico 3×5** (3 linhas FC/C/CP × 5 colunas) => input da CNN 3D.
 
 #### Discussão sobre série temporal direta
 
-O sinal pré-processado `(épocas × canais × tempo)` é mantido em `X_temporal` para:
+O sinal pré-processado (épocas × canais × tempo) é mantido em X_temporal para:
 - entrada natural de CNNs (1D, 2D sobre STFT, 3D topográfica);
-- **vantagens**: preserva 100 % da informação espectral e temporal;
-- **limitações**: ~12k features por época sem extração; exige modelos com forte indutivismo espacial (CNN, EEGNet) ou regularização agressiva.
+- **vantagens:** preserva 100 % da informação espectral e temporal;
+- **limitações:** Analisa 12 mil variáveis sem filtro por época pede modelos visuais (CNN/EEGNet) ou bloqueios fortes contra memorização.
 
 ---
 
 ## 5. Redução de Dimensionalidade
 
-Implementada e comparada no `Preprocessamento_Geral.ipynb` (seção 5) e refinada no `Modelos_ML.ipynb` (Teste 5):
+Implementada e comparada no Preprocessamento_Geral.ipynb (seção 5) e refinada no Modelos_ML.ipynb (Teste 5):
 
 ### Técnicas avaliadas
 
-- **PCA** (não supervisionada) — máxima variância;
-- **LDA** (supervisionada) — em problema binário projeta para 1D no eixo de máxima separabilidade;
-  - Variante 1: `solver='svd'` (sem regularização);
-  - Variante 2: `solver='eigen', shrinkage='auto'` (Ledoit-Wolf);
-- **t-SNE** — apenas visualização (não tem `transform` para novos dados);
-- **SelectKBest** (`f_classif`, k=50) — seleção supervisionada preservando features originais.
+- **PCA** (não supervisionada) - máxima variância;
+- **LDA** (supervisionada) - em problema binário projeta para 1D no eixo de máxima separabilidade;
+  - Variante 1: solver='svd' (sem regularização);
+  - Variante 2: solver='eigen', shrinkage='auto' (Ledoit-Wolf);
+- **t-SNE** - apenas visualização (não tem transform para novos dados);
+- **SelectKBest** (f_classif, k=50) - seleção supervisionada preservando features originais.
 
 ### Configurações principais
 
-- **Nº de componentes PCA**: 22 (≈ 95% da variância acumulada nas features clássicas).
+- **Nº de componentes PCA**: 22 (aproximadamente 95% da variância acumulada nas features clássicas).
 - **LDA n_components**: 1 (binário).
 
-### Resultados — comparação inicial (preprocessing.5.2, GroupKFold 5)
+### Resultados - comparação inicial (preprocessing.5.2, GroupKFold 5)
 
 | Estratégia | Acurácia média | Desvio padrão |
 |---|---:|---:|
-| LDA puro (105 features) | 55,56 % | ± 3,65 % |
-| PCA(22) + LDA | 53,78 % | ± 7,88 % |
-| PCA(22) + SVM linear | 51,78 % | ± 4,07 % |
-| LDA(1) + SVM linear | 55,11 % | ± 3,76 % |
-| **SelectKBest(50) + SVM linear** | **62,22 %** | ± 10,40 % |
+| LDA puro (105 features) | 55,56 % | +/- 3,65 % |
+| PCA(22) + LDA | 53,78 % | +/- 7,88 % |
+| PCA(22) + SVM linear | 51,78 % | +/- 4,07 % |
+| LDA(1) + SVM linear | 55,11 % | +/- 3,76 % |
+| **SelectKBest(50) + SVM linear** | 62,22 % | +/- 10,40 % |
 
 ### Análise
 
-- **PCA não supervisionada reduziu performance** e aumentou instabilidade — eixo de máxima variância ≠ eixo de máxima separação.
-- **LDA como redutor (1D)** mantém performance similar ao LDA puro.
-- **SelectKBest supervisionado** foi a melhor estratégia neste primeiro varrimento (+6,7pp), mas com maior variância entre folds.
-- **t-SNE / PCA 2D** mostraram **sobreposição significativa** entre classes — confirmação visual da dificuldade clássica de classificação cross-subject em MI-EEG.
+- PCA não supervisionada reduziu performance e aumentou instabilidade, eixo de máxima variância diferente do eixo de máxima separação.
+- LDA como redutor (1D) manteve performance similar ao LDA puro.
+- SelectKBest supervisionado foi a melhor estratégia neste primeiro varrimento (+6,7pp), mas com maior variância entre folds.
+- t-SNE / PCA 2D mostraram sobreposição significativa entre classes, confirmação visual da dificuldade clássica de classificação cross-subject em MI-EEG.
 
-> No notebook ML (Teste 5), o LDA com `shrinkage='auto'` foi reavaliado em conjunto com cada uma das 4 variantes de features e cada um dos 6 classificadores. **A melhor configuração geral foi `KNN + canal_com_rms + LDA(shrinkage=auto)` → 0,598 acc**.
+No notebook ML (Teste 5), o LDA com shrinkage='auto' foi reavaliado em conjunto com cada uma das 4 variantes de features e cada um dos 6 classificadores. A melhor configuração geral foi KNN + canal_com_rms + LDA(shrinkage=auto) com 0,598 acc.
 
 ---
 
 ## 6. Modelos de Machine Learning
 
-Implementados em `src/notebooks/Modelos_ML.ipynb`. Estrutura: **5 testes incrementais, do mais simples ao mais complexo**.
+Implementados em src/notebooks/Modelos_ML.ipynb. Estrutura: 5 testes do mais simples ao mais complexo.
 
 | Teste | Pré-processamento | Modelos | Particularidade |
 |---:|---|---|---|
@@ -184,53 +184,53 @@ Implementados em `src/notebooks/Modelos_ML.ipynb`. Estrutura: **5 testes increme
 | **2** | 4 variantes (canal/média × sem/com RMS) | 5 classificadores | Estuda agregação espacial e correção de magnitude |
 | **3** | CSP (com/sem RMS) | 5 classificadores | Filtros espaciais supervisionados |
 | **4** | FBCSP (5 sub-bandas) + MIBIF (top-8) | 5 classificadores | Extensão multi-banda do CSP |
-| **5** | 4 variantes × 3 estratégias de LDA | **6 classificadores** (inclui SVM Linear) | Compara LDA (com/sem shrinkage) como redução supervisionada |
+| **5** | 4 variantes × 3 estratégias de LDA | 6 classificadores (inclui SVM Linear) | Compara LDA (com/sem shrinkage) como redução supervisionada |
 
 ### Configurações dos modelos clássicos
 
 | Modelo | Configuração |
 |---|---|
-| Naive Bayes | `GaussianNB()` |
-| KNN | `n_neighbors=7`, `n_jobs=-1` |
-| Logistic Regression | `C=1.0`, `penalty='l2'`, `solver='lbfgs'`, `max_iter=2000` |
-| SVM (RBF) | `kernel='rbf'`, `C=1.0`, `gamma='scale'`, `probability=True` |
-| SVM (Linear) | `kernel='linear'`, `C=1.0`, `probability=True` |
-| Random Forest | `n_estimators=300`, `n_jobs=-1` |
+| Naive Bayes | GaussianNB() |
+| KNN | n_neighbors=7, n_jobs=-1 |
+| Logistic Regression | C=1.0, penalty='l2', solver='lbfgs', max_iter=2000 |
+| SVM (RBF) | kernel='rbf', C=1.0, gamma='scale', probability=True |
+| SVM (Linear) | kernel='linear', C=1.0, probability=True |
+| Random Forest | n_estimators=300, n_jobs=-1 |
 
-Todos os classificadores são encapsulados em `Pipeline([StandardScaler, ..., clf])` para garantir que **scaler, redutor e classificador sejam ajustados somente no treino de cada fold**.
+Todos os classificadores são encapsulados em Pipeline([StandardScaler, ..., clf]) para garantir que scaler, redutor e classificador sejam ajustados somente no treino de cada fold.
 
 ### Lógica de avaliação dentro de cada teste
 
-Cada teste é organizado em **4 sub-células**, idênticas em propósito:
+Cada teste é organizado em 4 sub-células, idênticas por propósito:
 
-1. **Pré-processamento / extração** — converte épocas em matriz `(n_épocas, n_features)`, adequada ao formato esperado pelos classificadores.
-2. **Treino e validação** — define o banco de modelos e roda `cross_validate` com **6 métricas** (accuracy, balanced_accuracy, precision, recall, F1, ROC-AUC) sob LOSO + GroupKFold(5).
-3. **Métricas** — tabela `média (dp)`, barras (acc, F1, AUC), **ROC out-of-fold**, **matrizes de confusão out-of-fold** e *sanity checks*: DummyClassifier, **permutation test** (n=50), e **demo de vazamento** (StratifiedKFold vs GroupKFold).
-4. **Dinâmica de aprendizado** — três famílias de curvas:
-   - (A) Loss × epoch e accuracy × epoch via `SGDClassifier` (`partial_fit`, log-loss + hinge);
-   - (B) Accuracy × `n_estimators` para Random Forest com `warm_start=True`;
-   - (C) **Learning curves** do sklearn (acc × tamanho do treino) com GroupKFold(5).
+1. **Pré-processamento / extração** - converte épocas em matriz (n_épocas, n_features), adequada ao formato esperado pelos classificadores.
+2. **Treino e validação** - define o banco de modelos e roda cross_validate com 6 métricas (accuracy, balanced_accuracy, precision, recall, F1, ROC-AUC) sob LOSO + GroupKFold(5).
+3. **Métricas** - tabela média (dp), barras (acc, F1, AUC), ROC out-of-fold, matrizes de confusão out-of-fold e sanity checks: DummyClassifier, permutation test (n=50), e demo de vazamento (StratifiedKFold vs GroupKFold).
+4. **Dinâmica de aprendizado** - três famílias de curvas:
+   - (A) Loss × epoch e accuracy × epoch via SGDClassifier (partial_fit, log-loss + hinge);
+   - (B) Accuracy × n_estimators para Random Forest com warm_start=True;
+   - (C) Learning curves do sklearn (acc × tamanho do treino) com GroupKFold(5).
 
 ---
 
 ## 7. Redes Neurais
 
-Implementadas em `src/notebooks/Modelos_Deep_learning.ipynb`. **10 testes** progressivos:
+Implementadas em src/notebooks/Modelos_Deep_learning.ipynb. 10 testes progressivos:
 
 | Teste | Modelo | Representação | Pergunta investigada |
 |---:|---|---|---|
-| 1 | **MLP (128, 64, 32)** + BN + Dropout | Features clássicas (147) | Baseline DL; teto sobre features clássicas |
+| 1 | MLP (128, 64, 32) + BN + Dropout | Features clássicas (147) | Baseline DL; teto sobre features clássicas |
 | 2 | MLP + PCA | Features → PCA(k variável) | Reduzir dim ajuda? |
-| 3 | MLP + SMOTE / Undersampling | Desbalanceamento induzido | Como o MLP responde a imbalance? |
-| 4 | MLP × 7 extratores espaciais | FBCSP, **SPoC**, **Riemann**, Wavelet, FB-SPoC | Features espaciais > clássicas? |
-| 5 | MLP — *grid* de hiperparâmetros | SPoC k=4 | Largura, profundidade, α, ativação |
+| 3 | MLP + SMOTE / Undersampling | Desbalanceamento induzido | Como o MLP responde a desbalaceamento? |
+| 4 | MLP × 7 extratores espaciais | FBCSP, SPoC, Riemann, Wavelet, FB-SPoC | Features espaciais > clássicas? |
+| 5 | MLP - grid de hiperparâmetros | SPoC k=4 | Largura, profundidade, α, ativação |
 | 6 | LDA, LogReg, Linear SVM, RBF SVM, MLP | SPoC | MLP supera lineares? |
 | 7 | Análise hemisférica | Esquerdo/Direito/Ambos | Lateralidade contralateral é o sinal dominante? |
-| 8 | **CNN 2D** sobre layout topográfico 3×5 | 7 features × posição | Layout espacial ajuda? |
-| 9 | **CNN 2D sobre STFT** | Sinal cru → espectrograma | Aprender filtros tempo-frequência |
-| 10 | **CNN 3D** topográfica espaço-temporal-frequencial | STFT + topografia | Modelo end-to-end completo |
+| 8 | CNN 2D sobre layout topográfico 3×5 | 7 features × posição | Mapa espacial ajuda? |
+| 9 | CNN 2D sobre STFT | Sinal cru => espectrograma | Aprender filtros tempo-frequência |
+| 10 | CNN 3D topográfica espaço-temporal-frequencial | STFT + topografia | Modelo end-to-end completo |
 
-### MLP (Teste 1 — `MLP-Keras-v2`)
+### MLP (Teste 1 -  MLP-Keras-v2)
 
 ```
 Input (147)
@@ -242,14 +242,14 @@ Input (147)
 
 - **Optimizer**: Adam (`lr=1e-3`)
 - **Loss**: binary_crossentropy
-- **Batch**: 64 | **Épocas**: 40 fixas (sem EarlyStopping, val_loss é ruidoso com poucos sujeitos)
+- **Batch**: 64 ; **Épocas**: 40 fixas (sem EarlyStopping, val_loss é ruidoso com poucos sujeitos)
 - **Pré-processamento**: z-score por sujeito + RobustScaler ajustado no treino
 - **Regularização**: BatchNorm + Dropout
-- **Estabilização**: ensemble de **3 sementes** por fold
+- **Estabilização**: ensemble de 3 sementes por fold
 
 ### CNN 2D sobre STFT (Teste 9)
 
-Entrada: `(F=18, T=9, C=21)` — espectrogramas log-power por canal.
+Entrada: (F=18, T=9, C=21) - espectrogramas log-power por canal.
 
 ```
 Conv2D(16, 3×3) → BN → ReLU → MaxPool(2×2) → Dropout(0.3)
@@ -259,7 +259,7 @@ Dense(32, ReLU) → Dropout(0.4) → Dense(1, sigmoid)
 
 ### CNN 3D topográfica (Teste 10)
 
-Entrada: `(rows=3, cols=5, F=18, T=9)` — canais distribuídos em grid 3×5 que reflete posição no escalpo (linha de cima = FC, do meio = C, baixo = CP).
+Entrada: (rows=3, cols=5, F=18, T=9) - canais distribuídos em grid 3×5 que reflete posição no escalpo (linha de cima = FC, do meio = C, baixo = CP).
 
 ```
 Conv3D(16) → MaxPool3D → Conv3D(32) → MaxPool3D
@@ -268,20 +268,20 @@ GlobalAvgPool3D → Dense(32) → Dropout(0.5) → Dense(1, sigmoid)
 
 ### Discussão MLP vs clássicos
 
-A hipótese inicial — *“o MLP terá desempenho similar a SVM/RF sobre as mesmas features”* — foi **confirmada**. Em vários testes, **Linear SVM e LDA superam o MLP**, sinalizando que o problema é **quase-linear no espaço de features escolhido** com a quantidade de dados disponível.
+A hipótese - *“o MLP terá desempenho similar a SVM/RF sobre as mesmas features”* foi confirmada. Em vários testes, Linear SVM e LDA superam o MLP, demonstrando que o problema é quase-linear no espaço de features escolhido com a quantidade de dados disponível.
 
 ---
 
 ## 8. Balanceamento
 
-### Diagnóstico do dataset
+### Verificação do dataset
 
 ```
 Classe T1 (y=0): 225 épocas (50,0 %)
 Classe T2 (y=1): 225 épocas (50,0 %)
 ```
 
-**O dataset original é perfeitamente balanceado** → SMOTE/undersampling **não foram aplicados no fluxo principal**.
+O dataset é perfeitamente balanceado => SMOTE/undersampling não foram aplicados no fluxo principal.
 
 ### Estudo controlado de balanceamento (Teste 3 do notebook DL)
 
@@ -290,16 +290,16 @@ Para fins didáticos, foi induzido um desbalanceamento artificial (≈ 80/20) e 
 | Cenário | Acurácia (enganosa) | Balanced accuracy | Recall (T2 minoritária) | F1 |
 |---|---:|---:|---:|---:|
 | Sem correção | 0,702 | 0,510 | 0,155 | — |
-| **SMOTE** | 0,612 | 0,576 | 0,375 (+0,220) | + |
-| **Undersampling** | 0,562 | 0,547 | **0,581** (+0,426) | + |
+| SMOTE | 0,612 | 0,576 | 0,375 (+0,220) | + |
+| Undersampling | 0,562 | 0,547 | **0,581** (+0,426) | + |
 
 ### Discussão
 
-- **A acurácia bruta é enganosa em datasets desbalanceados** (modelo prevê tudo como majoritária e ainda parece "boa").
-- **SMOTE** e **undersampling** elevam **balanced_accuracy** e **recall da minoritária** ao custo de menos accuracy crua.
-- **AUC** é independente de threshold e quase não muda entre as três estratégias.
+- A acurácia bruta é enganosa em datasets desbalanceados (modelo prevê tudo como majoritária e ainda parece "boa").
+- SMOTE e undersampling elevam balanced_accuracy e recall da minoritária ao custo de menos accuracy crua.
+- AUC é independente de threshold e quase não muda entre as três estratégias.
 
-> **Conclusão**: como o dataset real é balanceado, o balanceamento **não trouxe ganho** no fluxo principal. Quando há desbalanceamento, SMOTE/RUS são **essenciais** para evitar o vício da majoritária.
+  > **Conclusão;** como o dataset real é balanceado, o balanceamento não trouxe ganho no fluxo principal. Quando há desbalanceamento, SMOTE/RUS são importantes para evitar overtifing.
 
 ---
 
@@ -307,20 +307,20 @@ Para fins didáticos, foi induzido um desbalanceamento artificial (≈ 80/20) e 
 
 ### Combinação (Voting)
 
-Implementada na seção final do `Modelos_ML.ipynb`:
+Implementada na seção final do Modelos_ML.ipynb:
 
 | Ensemble | Modelos | Acurácia (GKF5) |
 |---|---|---:|
-| **Hard Voting** | LogReg + RandomForest + KNN | 0,555 ± std |
-| **Soft Voting** | LogReg + RandomForest + NaiveBayes | 0,546 ± std |
+| Hard Voting | LogReg + RandomForest + KNN | 0,555 +/- std |
+| Soft Voting | LogReg + RandomForest + NaiveBayes | 0,546 +/- std |
 
-**Resultado**: ensembles **não trouxeram ganho real** sobre os melhores individuais.
+**Resultado**: ensembles não trouxeram ganho real sobre os melhores individuais.
 
-> **Por que o ensemble não ajudou?** Em BCI cross-subject o teto de performance é dominado pela **heterogeneidade entre sujeitos** (BCI literacy), não por instabilidade de modelo. Ensembles ajudam quando há **decorrelação entre erros**, e os 3 modelos topo erram nos **mesmos** sujeitos difíceis.
+> **Por que o ensemble não ajudou?** Em BCI cross-subject o teto de performance é dominado pela heterogeneidade entre sujeitos (BCI literacy), não por instabilidade de modelo. Ensembles ajudam quando há decorrelação entre erros, e os 3 modelos topo erram nos mesmos sujeitos difíceis.
 
 ### Rejeição por limiar de confiança
 
-Aplicada ao **modelo top-1** (`KNN + RMS + LDA-auto`) — `Comparativo_MLxDL.ipynb`, seção H-2:
+Aplicada ao modelo top-1 (KNN + RMS + LDA-auto) - Comparativo_MLxDL.ipynb, seção H-2:
 
 | Limiar | Cobertura | Acurácia (aceitos) | Nº rejeitados |
 |---:|---:|---:|---:|
@@ -333,28 +333,28 @@ Aplicada ao **modelo top-1** (`KNN + RMS + LDA-auto`) — `Comparativo_MLxDL.ipy
 
 ### Trade-off
 
-- **Limiar maior** → menos cobertura, mas as predições aceitas são mais corretas.
-- Útil em **BCI online** quando se prefere "abster" a errar (ex.: comando para cadeira de rodas onde um falso positivo é perigoso).
+- Limiar maior => menos cobertura, mas as predições aceitas são mais corretas.
+- Útil em BCI em tempo real quando se prefere "abster" do que errar (ex.: comando para cadeira de rodas onde um falso positivo é perigoso).
 - Limiar = 0,60 é um bom compromisso (cobertura ≈ 55 %, accuracy ≈ 68 %).
 
 ---
 
 ## 10. Resultados Gerais
 
-### Tabela Comparativa — Top 3 ML × Top 3 DL (`Comparativo_MLxDL.ipynb`, GroupKFold 5)
+### Tabela Comparativa - Top 3 ML × Top 3 DL (`Comparativo_MLxDL.ipynb`, GroupKFold 5)
 
 | Modelo | Representação | Acurácia | Balanced Acc | Precision | Recall | F1 | ROC-AUC | Gap (overfit) |
 |---|---|---:|---:|---:|---:|---:|---:|---:|
-| **ML1: KNN + RMS + LDA-auto** | clássica `canal_com_rms` | **0,598 ± std** | 0,598 | 0,599 | 0,598 | 0,598 | 0,628 | +0,18 |
-| **ML2: LogReg + RMS** | clássica `canal_com_rms` | 0,596 ± std | 0,596 | 0,597 | 0,596 | 0,596 | 0,640 | +0,16 |
+| **ML1: KNN + RMS + LDA-auto** | clássica canal_com_rms | 0,598 ± std | 0,598 | 0,599 | 0,598 | 0,598 | 0,628 | +0,18 |
+| **ML2: LogReg + RMS** | clássica canal_com_rms | 0,596 ± std | 0,596 | 0,597 | 0,596 | 0,596 | 0,640 | +0,16 |
 | **ML3: SVM (RBF) + RMS + LDA** | clássica `canal_com_rms` | 0,582 ± std | 0,582 | 0,583 | 0,582 | 0,582 | 0,621 | +0,19 |
-| DL1: MLP (128, 64, 32) | clássica `canal_com_rms` | 0,580 ± 0,103 | 0,580 | — | — | — | 0,607 | **+0,28** |
-| DL2: CNN 2D sobre STFT | STFT log-power por canal | 0,551 | — | — | — | — | ~0,57 | +0,07 |
-| DL3: CNN 3D topográfica | STFT + grid 3×5 topográfico | 0,516 | — | — | — | — | ~0,52 | +0,01 |
+| **DL1: MLP (128, 64, 32)** | clássica canal_com_rms | 0,580 ± 0,103 | 0,580 | — | — | — | 0,607 | **+0,28** |
+| **DL2: CNN 2D sobre STFT** | STFT log-power por canal | 0,551 | — | — | — | — | ~0,57 | +0,07 |
+| **DL3: CNN 3D topográfica** | STFT + grid 3×5 topográfico | 0,516 | — | — | — | — | ~0,52 | +0,01 |
 
-> **Acima de 0,5 = melhor que chance.** Os 3 melhores ML estão **virtualmente empatados** num patamar 0,58–0,60 — o que é consistente com a literatura para MI **cross-subject** com poucos sujeitos.
+> **Acima de 0,5 = melhor que acado.** Os 3 melhores ML estão **virtualmente empatados** num patamar 0,58-0,60 o que é consistente com a literatura para MI cross-subject com poucos sujeitos.
 
-### Gráfico comparativo (gerado no `Comparativo_MLxDL.ipynb`, seção H-3)
+### Gráfico comparativo (gerado no Comparativo_MLxDL.ipynb, seção H-3)
 
 Barras agrupadas (accuracy / F1 / AUC) lado a lado para os 6 modelos. Linha tracejada cinza marca o nível de chance (0,50).
 
@@ -364,40 +364,40 @@ Os 3 melhores ML produzem ROCs **quase paralelas** com AUC ≈ 0,62–0,64. As C
 
 ### Matrizes de confusão (out-of-fold, N=450)
 
-Por exemplo, **ML1 (KNN+RMS+LDA-auto)**:
+Por exemplo, ML1 (KNN+RMS+LDA-auto):
 
 |  | Pred T1 | Pred T2 |
 |---|---:|---:|
 | Real T1 | TN ≈ 135 | FP ≈ 90 |
 | Real T2 | FN ≈ 91 | TP ≈ 134 |
 
-Erros **simétricos** (FP ≈ FN) → fronteira de decisão centrada, modelo trata as duas mãos de forma equivalente.
+Erros simétricos (FP ≈ FN) => fronteira de decisão centrada, modelo trata as duas mãos de forma equivalente.
 
 ### Comparações pedidas
 
 #### Com vs sem balanceamento
 
-Não aplicável no dataset real (já balanceado). No estudo controlado (DL Teste 3): **balanced_accuracy** sobe de 0,510 → 0,576 (SMOTE) e recall(T2) de 0,155 → 0,581 (undersampling).
+Não aplicável no dataset real (já balanceado). No estudo controlado (DL Teste 3): balanced_accuracy sobe de 0,510 para 0,576 (SMOTE) e recall(T2) de 0,155 para 0,581 (undersampling).
 
 #### Com vs sem PCA
 
 | Cenário | Acurácia (GKF5) |
 |---|---:|
 | LDA puro (sem PCA) | 0,556 |
-| **PCA(22) + LDA** | **0,538** (–) |
+| PCA(22) + LDA | **0,538** (–) |
 | SelectKBest(50) + SVM | 0,622 (+) |
 
-→ **PCA prejudicou**; **SelectKBest (supervisionado) ajudou**.
+=> PCA prejudicou; SelectKBest (supervisionado) ajudou.
 
 #### Modelos individuais vs ensemble
 
 | | Acurácia |
 |---|---:|
-| Melhor individual (KNN+LDA-auto) | **0,598** |
+| Melhor individual (KNN+LDA-auto) | 0,598 |
 | Hard Voting (LR+RF+KNN) | 0,555 |
 | Soft Voting (LR+RF+NB) | 0,546 |
 
-→ **Ensembles não superaram** o melhor individual.
+=> Ensembles não superaram o melhor individual.
 
 ---
 
@@ -405,45 +405,45 @@ Não aplicável no dataset real (já balanceado). No estudo controlado (DL Teste
 
 ### Estratégia
 
-- **GroupKFold(5)** — 5 folds garantindo que nenhum sujeito apareça simultaneamente em treino e teste; cada fold tem ~90 épocas de teste.
-- **Leave-One-Subject-Out (LOSO)** — 10 folds, 1 sujeito-teste por vez.
-- **Sanity check de vazamento**: para cada fold, verifica-se via `assert` que `set(groups[train]) ∩ set(groups[test]) = ∅`.
-- **Ensemble de sementes** (apenas Keras): 3 sementes por fold para reduzir variância de inicialização.
+- **GroupKFold(5)** - 5 folds garantindo que nenhum sujeito apareça simultaneamente em treino e teste; cada fold tem ~90 épocas de teste.
+- **Leave-One-Subject-Out (LOSO)** - 10 folds, 1 sujeito-teste por vez.
+- **Sanity check de vazamento**: para cada fold, verifica-se via assert que set(groups[train]) ∩ set(groups[test]) = ∅.
+- **Ensemble de sementes (apenas Keras)**: 3 sementes por fold para reduzir variância de inicialização.
 
-> **Por que GroupKFold(5) e não LOSO no comparativo final?** Cada modelo é avaliado **nas mesmas 5 partições** — pré-requisito do **teste de Friedman** (medidas repetidas). LOSO inflaciona variância (n=45 ép./fold).
+> **Por que GroupKFold(5) e não LOSO no comparativo final?** Cada modelo é avaliado nas mesmas 5 partições - pré-requisito do teste de Friedman (medidas repetidas). LOSO inflaciona variância (n=45 ép./fold).
 
 ### Métricas
 
-- **Accuracy** — proporção de acertos.
-- **Balanced accuracy** — média do recall por classe (robusta a desbalanceamento).
-- **Precision** — TP/(TP+FP).
-- **Recall** — TP/(TP+FN).
-- **F1-score** — média harmônica de precision e recall.
-- **ROC-AUC** — área sob a curva ROC; independente de threshold.
+- **Accuracy:** proporção de acertos.
+- **Balanced accuracy:** média do recall por classe (robusta a desbalanceamento).
+- **Precision:** TP/(TP+FP).
+- **Recall:** TP/(TP+FN).
+- **F1-score:** média harmônica de precision e recall.
+- **ROC-AUC:**  área sob a curva ROC; independente de threshold.
 
 ### Sanity checks
 
 | Verificação | Resultado |
 |---|---|
-| **Dummy stratified** | acc ≈ 0,50 ± std (consistente com chance) |
-| **Permutation test** (n=50) sobre o melhor modelo | p < 0,05 → performance é estatisticamente acima da chance |
-| **Demo de vazamento**: StratifiedKFold (vazando) vs GroupKFold (correto) | inflação de **+10 a +25 pp** quando se ignora o agrupamento por sujeito — evidência do efeito de vazamento |
+| **Dummy stratified** | acc ≈ 0,50 +/- std (consistente com chance) |
+| **Permutation test** (n=50) sobre o melhor modelo | p < 0,05 => performance é estatisticamente acima do acaso |
+| **Demo de vazamento**: StratifiedKFold (vazando) vs GroupKFold (correto) | inflação de +10 a +25 pp quando se ignora o agrupamento por sujeito - evidência do efeito de vazamento |
 
-### Testes estatísticos entre os 6 modelos (`Comparativo_MLxDL.ipynb`, seção G)
+### Testes estatísticos entre os 6 melhores modelos (Comparativo_MLxDL.ipynb, seção G)
 
 | Teste | Resultado | Interpretação |
 |---|---|---|
 | **Levene (homocedasticidade)** | p > 0,05 | Variâncias compatíveis |
-| **ANOVA (accuracy)** | F = ?, **p = 0,0315** | Rejeita H₀ — há diferença entre algum par |
-| **Tukey HSD (accuracy)** | nenhum par é significativo a α=0,05 | Diferenças entre os 3 melhores ML estão **abaixo do poder** com 5 folds |
-| **Friedman (medidas repetidas)** | χ² = 9,88, **p = 0,079** | Borderline; não rejeita H₀ a 5 % |
-| **Nemenyi** post-hoc | ML clusterizam (rank 2,2–2,8) acima das CNNs e MLP (rank 3,9–4,8) | Clusters separáveis, mas pares individuais não significativos |
+| **ANOVA (accuracy)** | F = ?, p = 0,0315 | Rejeita H₀ - há diferença entre algum par |
+| **Tukey HSD (accuracy)** | nenhum par é significativo a α=0,05 | Diferenças entre os 3 melhores ML não são significativas nos 5 folds |
+| **Friedman (medidas repetidas)** | χ² = 9,88, p = 0,079 | Borderline; não rejeita H₀ a 5 % |
+| **Nemenyi post-hoc** | ML clusterizam (rank 2,2–2,8) acima das CNNs e MLP (rank 3,9–4,8) | Clusters separáveis, mas pares individuais não significativos |
 | **Wilcoxon pareado** (todos os pares) | confirma o padrão acima | — |
 
 ### Observações sobre estabilidade
 
-- **Folds têm variância considerável** (desvios de até 0,10 em accuracy) — característica esperada de BCI cross-subject com poucos sujeitos.
-- **Boxplot por teste** mostra que **T2 e T5 (variantes de features clássicas)** têm distribuição comparável a T3/T4 (CSP/FBCSP), confirmando que **features handcrafted bem desenhadas competem com filtros espaciais** neste regime de N pequeno.
+- **Folds têm variância considerável** (desvios de até 0,10 em accuracy) - característica esperada de BCI cross-subject com poucos sujeitos.
+- **Boxplot por teste** mostra que T2 e T5 (variantes de features clássicas) têm distribuição comparável a T3/T4 (CSP/FBCSP), Provando que, com poucos dados, boas características tipicas competem de igual para igual com redes espaciais.
 
 ---
 
@@ -451,54 +451,54 @@ Não aplicável no dataset real (já balanceado). No estudo controlado (DL Teste
 
 ### Qual modelo teve melhor desempenho?
 
-**`KNN(k=7) + canal_com_rms + LDA(shrinkage='auto')` — acurácia média 0,598 ± std (GroupKFold 5)**.
+**KNN(k=7) + canal_com_rms + LDA(shrinkage='auto') - acurácia média 0,598 +/- std (GroupKFold 5)**.
 
-LogReg(L2) sobre as mesmas features (sem LDA) ficou empatado em 0,596 — o **LDA ajuda principalmente o KNN** (sensível à dimensionalidade), enquanto LogReg já é linear e regularizado.
+LogReg(L2) sobre as mesmas features (sem LDA) ficou empatado em 0,596, o LDA ajuda principalmente o KNN (sensível à dimensionalidade), enquanto LogReg já é linear e regularizado.
 
 ### Qual representação foi superior?
 
-**Features clássicas com normalização RMS por canal** (`canal_com_rms`):
+**Features clássicas com normalização RMS por canal** (canal_com_rms):
 
 - **Por que RMS ajudou?** Remove diferenças de magnitude absoluta entre sujeitos/sessões, isolando a forma espectral.
-- **Por que canal e não média?** A topografia (qual canal carrega o sinal motor) é informativa — agregar pela média perde essa informação.
-- **CSP (0,55) e FBCSP (0,55) ficaram abaixo** das clássicas com RMS, provavelmente porque o número modesto de épocas/sujeito faz o CSP estimar covariâncias com ruído.
+- **Por que canal e não média?** A topografia (qual canal carrega o sinal motor) é informativa, agregar pela média perde essa informação.
+- **CSP (0,55) e FBCSP (0,55) ficaram abaixo** das clássicas com RMS, provavelmente porque o número pequeno de épocas/sujeito faz o CSP estimar covariâncias com ruído.
 
 ### PCA ajudou?
 
-**Não.** PCA(22) reduziu a acurácia em ~2pp em relação ao LDA puro. O eixo de máxima variância **não coincide** com o eixo de máxima separação entre classes neste problema. **SelectKBest (supervisionado)** foi a única redução que ajudou no varrimento inicial (+6,7 pp).
+**Não.** PCA(22) reduziu a acurácia em ~2pp em relação ao LDA puro. O eixo de máxima variância não coincide com o eixo de máxima separação entre classes neste problema. SelectKBest (supervisionado) foi a única redução que ajudou no varrimento inicial (+6,7 pp).
 
 ### Balanceamento ajudou?
 
-**Não no fluxo principal** (dataset já balanceado). Em cenário induzido, SMOTE e undersampling **elevam balanced_accuracy e recall da minoritária** sem alterar AUC.
+**Não no fluxo principal** (dataset já balanceado). Em cenário induzido, SMOTE e undersampling elevam balanced_accuracy e recall da minoritária sem alterar AUC.
 
 ### A RNA (MLP) foi competitiva?
 
-**Sim, mas não superou os clássicos**: MLP(128, 64, 32) atingiu acc ≈ 0,580 — essencialmente empatado com o top-3 ML, mas com **overfit severo** (gap treino-teste de +0,28 vs +0,16–0,19 dos ML). O problema é **quase-linear** no espaço de features escolhido.
+**Sim, mas não superou os clássicos**: MLP(128, 64, 32) atingiu acc ≈ 0,580 - essencialmente empatado com o top-3 ML, mas com overfit severo (gap treino-teste de +0,28 vs +0,16–0,19 dos ML). O problema é quase-linear no espaço de features escolhido.
 
 ### Ensembles trouxeram ganho?
 
-**Não.** Hard Voting = 0,555 e Soft Voting = 0,546 — ambos abaixo dos individuais. Os 3 modelos topo erram nos **mesmos sujeitos difíceis** (BCI illiterate), então não há decorrelação a explorar.
+**Não.** Hard Voting = 0,555 e Soft Voting = 0,546 - ambos abaixo dos individuais. Os 3 modelos topo erram nos mesmos sujeitos difíceis (BCI illiterate), então não há decorrelação a explorar.
 
 ### Rejeição melhorou confiabilidade?
 
-**Sim, com trade-off claro**: limiar 0,60 → cobertura 55 % com accuracy 68 % nas predições aceitas. Útil em aplicações online onde abster é melhor que errar.
+**Sim, com trade-off**: limiar 0,60 => cobertura 55 % com accuracy 68 % nas predições aceitas. Útil em aplicações online onde abster é melhor que errar.
 
 ### Análise eletrofisiológica complementar
 
 #### Gap LOSO vs GroupKFold(5)
 
-- gap global ≈ +0,02 a +0,05 → **moderado**: variabilidade entre sujeitos esperada em EEG motor; transferência possível com perda controlada.
+- gap global ≈ +0,02 a +0,05 => moderado: variabilidade entre sujeitos esperada em EEG motor, transferência possível com perda controlada.
 
 #### Heterogeneidade entre sujeitos (BCI literacy)
 
 Triagem within-subject com Riemann + LDA (limiar AUC ≥ 0,60):
 - **5 sujeitos "BCI literate"** (within-AUC ≥ 0,60)
 - **5 sujeitos "BCI illiterate"** (within-AUC < 0,60)
-- Correlação **Spearman ρ = +0,91** entre within-AUC e LOSO-AUC quando esse sujeito é teste — confirma que a triagem within-subject **prediz** o quanto cada sujeito é decodificável cross-subject.
+- Correlação **Spearman ρ = +0,91** entre within-AUC e LOSO-AUC quando esse sujeito é teste - confirma que a triagem within-subject prediz o quanto cada sujeito é decodificável cross-subject.
 
 #### Simetria dos erros
 
-Erros **simétricos** (FP ≈ FN) na maioria dos modelos top-3 → fronteira de decisão centrada, sem viés para uma das mãos.
+Erros simétricos (FP ≈ FN) na maioria dos modelos top-3 => fronteira de decisão centrada, sem viés para uma das mãos.
 
 ---
 
@@ -628,8 +628,8 @@ mini-projeto2/
 ## 15. Autor
 
 - **Nome**: Tiago Souto Rocha
-- **Vínculo**: Graduando em Psicologia (UEPB) e Pesquisador de Iniciação Científica em Neurociência Computacional (NUTES — grupo NeuroComp)
-- **Áreas**: Brain decoding, processamento de sinais EEG/fMRI, ML/DL aplicado a neuroimagem
+- **Vínculo**: Graduando em Psicologia (UEPB) e Pesquisador em Neurociência Computacional (NUTES - grupo NeuroComp)
+- **Áreas**: Brain decoding, processamento de sinais EEG/fMRI, IA.
 
 ---
 
