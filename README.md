@@ -1,6 +1,6 @@
 # Decodificação Neuromotora com EEG Através de Modelos de Machine Learning e Deep Learning
 
-Pipeline avançado de classificação de sinais EEG do dataset EEGBCI / PhysioNet entre as classes T1 (mão esquerda) vs T2 (mão direita) durante atividade imagética motora, comparando algoritmos clássicos de Machine Learning e de Deep Lerning (MLP, CNN 2D, CNN 3D), com testes de redução de dimensionalidade, balanceamento, ensembles e rejeição de classificadores.
+Pipelines de classificação de sinais EEG do dataset EEGBCI / PhysioNet entre as classes T1 (mão esquerda) vs T2 (mão direita) durante atividade imagética motora, comparando algoritmos clássicos de Machine Learning e de Deep Lerning (MLP, CNN 2D, CNN 3D), com testes de redução de dimensionalidade, balanceamento, ensembles e rejeição de classificadores.
 
 ---
 
