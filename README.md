@@ -356,7 +356,11 @@ Aplicada ao modelo top-1 (KNN + RMS + LDA-auto) - Comparativo_MLxDL.ipynb, seç�
 
 ### Gráfico comparativo (gerado no Comparativo_MLxDL.ipynb, seção H-3)
 
-Barras agrupadas (accuracy / F1 / AUC) lado a lado para os 6 modelos. Linha tracejada cinza marca o nível de chance (0,50).
+### Gráfico comparativo (gerado no Comparativo_MLxDL.ipynb, seção H-3)
+
+![Comparação final dos 6 modelos](assents/Comparação.png)
+
+*Barras agrupadas (accuracy / F1 / AUC) lado a lado para os 6 modelos. Linha tracejada cinza marca o nível de chance (0,50).*
 
 ### Curvas ROC OOF combinadas (`Comparativo_MLxDL.ipynb`, seção H-1)
 
