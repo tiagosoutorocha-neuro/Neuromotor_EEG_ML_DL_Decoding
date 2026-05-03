@@ -2,7 +2,7 @@
 
 Classification pipelines for EEG signals from the EEGBCI / PhysioNet dataset, distinguishing the classes **T1 (left hand)** vs. **T2 (right hand)** during motor imagery. The project benchmarks classical Machine Learning algorithms against Deep Learning architectures (MLP, 2D CNN, 3D CNN), with experiments on dimensionality reduction, class balancing, ensembles, and classifier rejection.
 
-![Graphical Abstract: Neuromotor Decoding from EEG Signals](assents/Abstract_Graficos.jpeg)
+![Graphical Abstract: Neuromotor Decoding from EEG Signals](assents/Abstract_Graficos.png)
 
 ---
 
